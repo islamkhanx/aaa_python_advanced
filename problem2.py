@@ -26,10 +26,6 @@ class Pokemon(PokemonTrainIntrface):
     def increase_experience(self, value: int):
         self.experience = self.experience + value
 
-    @property
-    def experience_(self):
-        return self._experience
-
     @experience.setter
     def experience(self, value):
         self._experience = value

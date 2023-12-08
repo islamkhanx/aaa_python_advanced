@@ -4,7 +4,9 @@ from keyword import iskeyword
 
 
 class DictToObject:
-    def __init__(self, dictionary):
+    """Базовый класс который создает из json аттрибуты"""
+    def __init__(self, dictionary: dict):
+        """Вскрывает json"""
         for key, value in dictionary.items():
             if isinstance(value, dict):
                 setattr(self, key, DictToObject(value))
@@ -12,34 +14,40 @@ class DictToObject:
                 setattr(self, key, value)
 
     def __setattr__(self, __name: str, __value: Any) -> None:
+        """переопределен что бы keyword не мог быть аттрибутом"""
         if iskeyword(__name):
             __name = __name + "_"
-        if __name == "price":
-            if __value < 0:
-                raise ValueError
         self.__dict__[__name] = __value
 
 
 class ColorizeMixin():
-
+    """Миксин добавляет цвета"""
     def __str__(self) -> str:
+        """отвечает за строковое определение класса + цвета"""
         name = self.title
-        cena = self.price
+        price = self.price
         color = self.repr_color_code
-        return f'\033[0;{color};{name}|{cena} $\n'
+        return f'\033[0;{color};{name}|{price} $\n'
 
 
 class Advert(ColorizeMixin, DictToObject):
+    """Классовое тображение обьявлений, имеет свой цвет"""
     repr_color_code = 32
 
-    def __init__(self, data):
-        for key, value in data.items():
-            if isinstance(value, dict):
-                setattr(self, key, DictToObject(value))
-            else:
-                setattr(self, key, value)
+    def __init__(self, data: dict):
+        """Инициализирует обьявление из json или dict
+           Так же проверяет на присутсвие title
+           И положительное значение price
+        """
+        super().__init__(data)
+        # то что ниже не в базовом классе,
+        # а тут что показалось мне более уместным
         if 'price' not in self.__dict__:
             setattr(self, 'price', 0)
+        if self.price < 0:
+            raise ValueError('Price can not be negative')
+        if 'title' not in self.__dict__:
+            raise KeyError('No title attribute')
 
 
 if __name__ == '__main__':
